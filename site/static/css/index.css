@@ -1,0 +1,12 @@
+body, html {
+    cursor: url("/static/img/d20.svg") 32 32, auto !important;
+    /* cursor: url("/static/img/crosshair.svg"), auto; */
+}
+div, span, p, a, li, h1, h2, h3, h4, h5, h6, label, input, textarea, button {
+    cursor: url("/static/img/d20.svg") 32 32, auto !important;
+    /* cursor: url("/static/img/crosshair.svg"), auto; */
+}
+img {
+    width: 600px;
+    height: auto;
+}

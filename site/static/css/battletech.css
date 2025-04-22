@@ -1,0 +1,4 @@
+#canvas {
+    cursor: url("/static/img/crosshairopen.svg") 32 32, auto;
+    /* cursor: url("/static/img/d20.svg"), auto; */
+}

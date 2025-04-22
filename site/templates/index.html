@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="container text-center mt-5">
+            <a href="/battletech" class="btn btn-primary btn-lg"><img src="{{ url_for('static', filename='img/battletech_button.png') }}"></a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="container text-center mt-5">
+            <a href="/dnd" class="btn btn-primary btn-lg"><img src="{{ url_for('static', filename='img/dnd_button.png') }}"></a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/battletech.css') }}">
+{% endblock %}
+{% block content %}
+<div id="alert" class="position-sticky top-0 start-0 w-100 alert alert-primary fade in hide no-cursor" role="alert"></div>
+<div class="collapse no-cursor" id="collapseMenu" style="z-index: 1002; width: 420px;">
+    <div class="card card-body">
+        <div class="accordion" id="accordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseMaps" aria-expanded="false" aria-controls="collapseMaps"> Change Map
+                    </button>
+                </h2>
+                <div id="collapseMaps" class="accordion-collapse collapse" data-bs-parent="#accordion">
+                    <div class="accordion-body">
+                        <div class="accordion" id="accordionMaps">
+                            <div class="accordion-item">
+                                {% if not maps %}
+                                <h3>There are no folders!</h3>
+                                {% endif %}
+                                {% if maps %}
+                                {% for folder, folders in maps.items() %}
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#map-collapse-{{ folder['aria_tag'] }}" aria-expanded="false"
+                                        aria-controls="map-collapse-{{ folder['aria_tag'] }}"> {{ folder }} </button>
+                                </h2>
+                                <div id="map-collapse-{{ folder['aria_tag'] }}" class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        <div class="list-group">
+                                            {% if not folders %}
+                                            <div class="">
+                                                <h3>There are no maps!</h3>
+                                            </div>
+                                            {% endif %}
+                                            {% if folders %}
+                                            {% for name, map in folders.items() %}
+                                            <a href="#" class="list-group-item list-group-item-action map-item"
+                                                data-src="{{ map['src'] }}" data-radius="{{ map['R'] }}" data-name="{{ map['name'] }}"> {{ map['name']
+                                                }}</a>
+                                            {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a id="mode" class="btn btn-primary mt-2" role="button">Drag Mode</a>
+        <a class="btn btn-primary mt-2" href="/" role="button">Exit</a>
+    </div>
+</div>
+<div id='canvas'></div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/battletech.js') }}"></script>
+{% endblock %}
