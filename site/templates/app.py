@@ -20,12 +20,7 @@ def battletech():
     maps = None
     maps = list_maps(game='battletech')
     return render_template('battletech.html', maps=maps)
-
-@app.route("/battletech/save", methods=['POST'])
-def battletech_save():
-    data = request.json
-    return save_map(data, 'battletech')
-
+    
 @app.route("/dnd", methods=['GET', 'POST'])
 def dnd():
     maps = None
@@ -65,14 +60,14 @@ def list_maps(game):
                                 with open(file_path, 'r') as f:
                                     data = f.read()
                                     m = json.loads(data)
+                                    m.pop('ariaTag', ''.join(random.choices(string.ascii_uppercase, k=10)))
                                     map_name = m['name']
                                     folders[folder_name][map_name] = m
     return folders
 
 def save_map(data, game):
-    file_name = data.get('name', 'Default')
-    folder_name = data.get('folder', 'Default')
-    
+    file_name = data.get('fileName', 'Default')
+    folder_name = data.get('folderName', 'Default')
     if not data:
         return jsonify({"error": True, "message": "No map data provided!"}), 400
     save_path = path.join('static', 'games', game, 'maps', folder_name, file_name + '.json')
@@ -89,7 +84,7 @@ def load_map(file_name, folder_name, game):
     file_path = path.join('static', 'games', game, 'maps', folder_name, file_name + '.json')
     try:
         with open(file_path, 'r') as f:
-            data = json.dumps(data)
+            data = f.read()
             return jsonify({"error": False, "data": json.loads(data)}), 200
     except Exception as e:
         print(e)

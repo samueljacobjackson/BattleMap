@@ -19,6 +19,32 @@
 <body>
     {% block content %}
     {% endblock %}
+    <script>
+        const ScreenWidthInches = 37.375
+        const resolutionWidth = 3840
+
+        //const ScreenWidthInches = 27.375 //Development
+        //const resolutionWidth = 2560 //Development
+
+        const MechBase = 1.375; //Size of battletech base in inches
+        const PPI = resolutionWidth / ScreenWidthInches;
+        
+        const R = (MechBase * PPI) / 2;  //Radius of what should the hex on screen in pixels (1.375 * Pixels per inch / 2)
+        const S = PPI; // Size of the base in pixels
+
+
+        function alert(message, type) {
+            /*
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = [
+                `<div class="position-fixed w-50 mt-3 alert alert-${type} alert-dismissible" role="alert">`,
+                `<div>${message}</div>`,
+                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+                '</div>'
+            ].join('');
+            */
+        }
+    </script>
     <script src="{{ url_for('static', filename='vendor/Konva/konva.min.js') }}"></script>
     {% block scripts %}
     {% endblock %}

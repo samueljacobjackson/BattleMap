@@ -1,16 +1,14 @@
-const ScreenWidthInches = 27.375 //Development
-const resolutionWidth = 2560 //Development
-const PPI = resolutionWidth / ScreenWidthInches;
-const MiniatureBase = 1.375; //Size of battletech base in inches
-const R = (MiniatureBase * PPI) / 2;  //Radius of what should the hex on screen in pixels (1.375 * Pixels per inch / 2)
-
-let scale = 1; /* Scale of the map, 1 = 100% */
-let map = null; /* Map object to hold map data  */
+let scale = 1;
+let map = null;
 let drag = false;
-let drawing = false; /* Flag to indicate if we are drawing a line */
-let startHex = { q: 0, r: 0 }; /* Start hex for the line */
+let drawing = false;
+let startHex = { q: 0, r: 0 };
+let contextPos = { x: 0, y: 0 };
+let target = null;
+let mapObj = null;
+let folder = '';
+let name = '';
 
-/* Initialize the stage using Konva.js */
 const stage = new Konva.Stage({
     container: 'canvas',
     width: window.innerWidth,
@@ -19,66 +17,74 @@ const stage = new Konva.Stage({
     x: 0,
     y: 0
 });
+stage.on('contextmenu', contextmenu);
+stage.on('mousedown', mousedown);
+stage.on('mousemove', mousemove);
+stage.on('mouseup', mouseup);
+stage.on('click', click);
 
-/* Create a Konva layer to fit the map to the screen */
 const mapLayer = new Konva.Layer({
     listening: false
 });
 stage.add(mapLayer);
 
-const lineLayer = new Konva.Layer(); /* Create a layer for the line */
+const lineLayer = new Konva.Layer();
 stage.add(lineLayer);
 let line
+
+const notesLayer = new Konva.Layer();
+stage.add(notesLayer);
 
 const tooltipLayer = new Konva.Layer({
     listening: false
 });
 stage.add(tooltipLayer);
 
-const label = new Konva.Label({
-    x: 0,
-    y: 0,
-    opacity: 0.0,
-});
-
-// Create tooltip
 const tooltipText = new Konva.Text({
     text: '',
     fontFamily: 'Calibri',
-    fontSize: 16,
+    fontSize: 28,
     padding: 5,
-    fill: 'rgba(0,0,0,1)',
+    fill: 'rgba(255,255,255,1)',
     listening: false,
+    align: 'center',
+    verticalAlign: 'middle',
 });
 
 const tooltip = new Konva.Group({
     listening: false,
 });
+
 const tooltipRect = new Konva.Rect({
-    fill: 'white',
-    opacity: 0.75,
-    cornerRadius: 5,
+    fill: 'green',
+    opacity: 0,
 });
+
 tooltip.add(tooltipRect);
 tooltip.add(tooltipText);
 tooltipLayer.add(tooltip);
 
-function moveTooltip(text, pos) {
-    tooltip.x(pos.x - 10);
-    tooltip.y(pos.y - 15);
-    tooltipText.text(text);
-    tooltipRect.width(tooltipText.width());
-    tooltipRect.height(tooltipText.height());   
-}
+$('#openDropNoteModal').on('click', openDropNoteModalClick);
+$('#collapseMenu').on('contextmenu', function () { return false; });
+$('.map-item').on('click', mapItemClick);
+$('#setDragMode').on('click', setDragModeClick);
+$('#lockMap').on('click', lockMapClick);
+$('#openSaveModal').on('click', openSaveModalClick);
+$('#saveMap').on('click', saveMapClick);
+$('#removeNote').on('click', removeNoteClick);
+$('#submitNote').on('click', submitNoteClick);
+$('#cancelNote').on('click', cancelNoteClick);
+$('#noteInput').on('keyup', noteInputKeyUp);
+$('#closeSaveModal').on('click', closeSaveModalClick);
 
-/* When mouse button iss released, we want to stop drawing the line */
+/************************************************************/
+/* Functions ************************************************/
 function destroyLines() {
-    lineLayer.destroyChildren(); /* Clear the line layer after mouseup */
-    tooltip.hide(); /* Hide the tooltip when stopping to draw the line */
-    drawing = false; /* Stop drawing the line */
+    lineLayer.destroyChildren();
+    tooltip.hide();
+    drawing = false;
 }
 
-/* Draw a blue line from origin to cursor position */
 function drawLine(pos) {
     if (map === null) /* If no map is loaded, we can't draw a line */
         return;
@@ -93,14 +99,28 @@ function drawLine(pos) {
     const hex = toAxial(pos); /* Get the hex for the line */
     const distance = axialDistance(startHex, hex); /* Get the distance between the start and end hexes */
     const text = `${distance}`; /* Create the text for the distance */
-    moveTooltip(text, pos); /* Display the tooltip with the distance */
+    moveTooltip(text, { x: pos.x - 23, y: pos.y - 20 }); /* Display the tooltip with the distance */
 }
 
-/* Initialize the line when starting to draw it */
+function hideContextMenu() {
+    $(".accordion-collapse").removeClass("show");
+    $('#collapseMenu').collapse('hide');
+    $('#collapseMenu2').collapse('hide');
+    $('#noteModal').collapse('hide');
+    $('#noteModal').addClass('hode').removeClass('show');
+    $('#noteModal').css('display', 'none');
+    $('#noteModal').css('opacity', '0');
+    $('#saveModal').collapse('hide');
+    $('#saveModal').addClass('hode').removeClass('show');
+    $('#saveModal').css('display', 'none');
+    $('#saveModal').css('opacity', '0');
+    $('#noteInput').val('');
+}
+
 function initLine(pos) {
-    if (map === null) /* If no map is loaded, we can't draw a line */
+    if (!map)
         return;
-    drawing = true; /* Set drawing to true when initializing the line */
+    drawing = true;
     line = new Konva.Line({
         stroke: 'blue',
         strokeWidth: 3,
@@ -108,18 +128,11 @@ function initLine(pos) {
         points: [pos.x, pos.y, pos.x, pos.y]
     });
     lineLayer.add(line);
-    startHex = toAxial(pos); /* Get the start hex for the line */
-    moveTooltip('0', pos); /* Display the tooltip with the start hex */
-    tooltip.show(); /* Show the tooltip when starting to draw the line */
+    startHex = toAxial(pos);
+    moveTooltip('0', { x: pos.x - 23, y: pos.y - 20 });
+    tooltip.show();
 }
 
-/* Hide the context menu when left clicking off it */
-function hideContextMenu() {
-    $(".accordion-collapse").removeClass("show"); /* Close any open accordions */
-    $('#collapseMenu').collapse('hide');
-}
-
-/* Keep the context menu on screen if it goes out of bounds */
 function keepContextMenuOnScreen(x, y, w, h) {
     if (y + h > window.innerHeight) {
         y = window.innerHeight - h;
@@ -134,13 +147,29 @@ function keepContextMenuOnScreen(x, y, w, h) {
         x = 0;
     }
     $('#collapseMenu').css({ top: y, left: x, position: 'absolute' });
+    $('#collapseMenu2').css({ top: y, left: x, position: 'absolute' });
 }
 
-/* Load the map image and add it to the mapLayer */
 function loadMap() {
+    notesLayer.destroy(); /* Clear the notes layer before loading a new map */
     mapLayer.destroyChildren(); /* Clear the map layer before loading a new map */
+
+    notesLayer = Konva.Node.create(map.notesLayer);
+    stage.add(notesLayer);
+
+    const notes = layer.find('.note');
+    notes.forEach(function (note) {
+        note.on('mousemove', noteMousemove);
+        note.on('mouseout', function (e) {
+            if (drawing)
+                return;
+            tooltip.hide();
+        });
+        note.src = `/static/img/note.png`;
+    });
+
     scale = R / map.R;
-    const mapObj = new Image();
+    mapObj = new Image();
     mapObj.onload = function () {
         const mapImg = new Konva.Image({
             image: mapObj,
@@ -154,13 +183,37 @@ function loadMap() {
     mapObj.src = map.src;
 }
 
-/* Show the context menu at the specified coordinates when right clicking stage */
-function showContextMenu(x, y) {
-    $("#collapseMenu").css({ top: y, left: x, position: 'absolute' });
-    $('#collapseMenu').collapse('show');
+function moveTooltip(text, pos) {
+    tooltip.x(pos.x);
+    tooltip.y(pos.y);
+    tooltipText.text(text);
+    if (drawing && line) {
+        tooltipText.width(50);
+        tooltipText.height(40);
+        tooltipText.align('center');
+    } else {
+        tooltipText.width(text.length * 20);
+        tooltipText.height(40);
+        tooltipText.align('left');
+    }
+    tooltip.width(tooltipText.width());
+    tooltip.height(tooltipText.height());
+    tooltipRect.width(tooltipText.width());
+    tooltipRect.height(tooltipText.height());
 }
 
-/* Change the splashscreen image every 60 seconds */
+function showContextMenu(pos) {
+    $("#collapseMenu").css({ top: pos.y, left: pos.x, position: 'absolute' });
+    if (map) {
+        $('#collapseMenu').collapse('show');
+    } else {
+        $('#collapseMenu2').collapse('show');
+    }
+    contextPos.x = pos.x;
+    contextPos.y = pos.y;
+    keepContextMenuOnScreen(pos.x, pos.y, $('#collapseMenu').width(), $('#collapseMenu').height());
+}
+
 function setSplashscreen(index) {
     if (map !== null) /* If no map is loaded, we can show the splashscreen */
         return;
@@ -184,75 +237,234 @@ function setSplashscreen(index) {
     }, 60000)
 }
 
-/* Initialize the screen and start spalshscreen rotation */
 function start() {
-    setSplashscreen(0); /* Start the splashscreen */
+    setSplashscreen(0);
 }
 
-/* Event Handlers ******************************************/
+/************************************************************/
+/* Konva Event Handlers **************************************/
+function click(e) {
+    hideContextMenu();
+}
 
-/* Open the custiom context menu when right clicking the stage */
-stage.on('contextmenu', function (e) {
-    e.evt.preventDefault(); /* Prevent the default context menu from showing */
-    destroyLines(); /* Clear any existing lines before showing the context menu */
-    showContextMenu(e.evt.clientX, e.evt.clientY);
-});
+function contextmenu(e) {
+    e.evt.preventDefault();
+    pos = stage.getPointerPosition();
+    target = e.target;
+    destroyLines();
+    showContextMenu(pos);
+};
 
-stage.on('mousedown', function (e) {
+function mousedown(e) {
     const pos = stage.getPointerPosition();
     pos.x = pos.x - stage.attrs.x;
     pos.y = pos.y - stage.attrs.y;
     if (drag) /* If in drag mode, we don't want to draw a line */
         return;
     initLine(pos); /* Initialize the line at the mouse position */
-});
+};
 
-stage.on('mousemove', function (e) {
+function mousemove(e) {
     const pos = stage.getPointerPosition();
     pos.x = pos.x - stage.attrs.x;
     pos.y = pos.y - stage.attrs.y;
     if (drag) /* If in drag mode, we don't want to draw a line */
         return;
     drawLine(pos); /* Update the line position as the mouse moves */
-});
+};
 
-stage.on('mouseup', (e) => {
+function mouseup(e) {
     destroyLines();
-});
+};
 
-/* Prevent context menu from appearing on the collapse menu itself */
-$('#collapseMenu').on('contextmenu', function () {
+function noteMousemove(e) {
+    if (drawing)
+        return;
+    const pos = stage.getPointerPosition();
+    pos.x = pos.x - stage.attrs.x + 32;
+    pos.y = pos.y - stage.attrs.y - 20;
+    tooltip.show();
+    moveTooltip(e.target.attrs.text, pos);
+}
+/******************************************************************/
+
+/*****************************************************************/
+/* Http event handlers ***********************************/
+function cancelNoteClick() {
+    hideContextMenu();
+}
+
+function closeSaveModalClick() {
+    hideContextMenu();
+}
+
+function lockMapClick() {
+    drag = false;
+    drawing = true;
+    $('#drag').addClass('btn-primary').removeClass('btn-success');
+    $('#drag').text('Drag Mode (Off)');
+
+    $('#lock').addClass('btn-success').removeClass('btn-primary');
+    $('#lock').text('Lock (On)');
+
+    stage.draggable(false);
+    hideContextMenu();
     return false;
-});
+};
 
-/* Hide the context menu when left clicking the stage */
-stage.on('click', function (e) {
+function openDropNoteModalClick() {
     hideContextMenu();
-});
+    if (!map)
+        return;
+    $('#noteModal').collapse('show');
+    $('#noteModal').addClass('show');
+    $('#noteModal').css('display', 'block');
+    $('#noteModal').css('opacity', '1');
+    $('#noteInput').val('');
+    $('#noteInput').focus();
+}
 
-$('.map-item').on('click', function () {
+function mapItemClick() {
     hideContextMenu();
-    map = {
-        src: $(this).data('src'),
-        R: $(this).data('radius'),
-        name: $(this).data('name')
-    }
-    loadMap();
-});
+    const mapName = $(this).data('name');
+    const mapFolder = $(this).data('folder');
+    $.ajax({
+        url: `/battletech/load?mapFolder=${mapFolder}&mapName=${mapName}`,
+        method: "GET",
+        success: function (response) {
+            map = response.data;
+            loadMap();
+        },
+        error: function (xhr, status, error) {
+            console.error(error.message);
+            alert(error.message, 'danger');
+        }
+    });
+}
 
-$('#mode').on('click', function () {
-    drag = !drag; /* Toggle drag mode */
-    if (drag) {
-        $(this).text('Line Mode');
-    } else {
-        $(this).text('Drag Mode');
+function noteInputKeyUp(e) {
+    if (e.keyCode === 13) { /* If the user presses enter, submit the note */
+        $('#submitNote').click();
     }
-    stage.draggable(drag); /* Enable or disable dragging the stage */
+    if (e.keyCode === 27) { /* If the user presses escape, cancel the note */
+        $('#cancelNote').click();
+    }
+}
+
+function openSaveModalClick() {
+    hideContextMenu();
+    if (!map)
+        return;
+    $('#saveModal').collapse('show');
+    $('#saveModal').addClass('show');
+    $('#saveModal').css('display', 'block');
+    $('#saveModal').css('opacity', '1');
+}
+
+function removeNoteClick() {
+    hideContextMenu();
+    if (target.name !== 'note')
+        return;
+    target.destroy();
+};
+
+function saveMapClick() {
+    if (!map) {
+        hideContextMenu();
+        return;
+    }
+    map.notesLayer = notesLayer.toJSON();
+    map.src = map.src;
+    $.ajax({
+        url: "/battletech/save",
+        method: "POST",
+        data: JSON.stringify(map),
+        contentType: "application/json",
+        success: function (response) {
+            if (!response.error) {
+                console.log(response.message);
+                alert(response.message, 'success');
+            } else {
+                console.error(response.message);
+                alert(response.message, 'danger');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error(error.message);
+            alert(error.message, 'danger');
+        }
+    });
+    hideContextMenu();
+}
+
+function setDragModeClick() {
+    drag = true;
+    drawing = false;
+    $('#drag').addClass('btn-success').removeClass('btn-primary');
+    $('#drag').text('Drag Mode (On)');
+
+    $('#lock').addClass('btn-primary').removeClass('btn-success');
+    $('#lock').text('Lock (Off)');
+
+    stage.draggable(true);
     hideContextMenu();
     return false;
-});
+}
 
-/* Keep track of the context menu when expanding accordias, and keep on screen */
+function submitNoteClick() {
+    if (!map)
+        return;
+    const note = $('#noteInput').val();
+    if (note === '') {
+        hideContextMenu();
+        alert('Please enter a note', 'warning');
+        return;
+    }
+    hideContextMenu();
+    let pos = contextPos;
+    pos = { x: pos.x - stage.attrs.x - 32, y: pos.y - stage.attrs.y - 32 };
+
+    const noteGroup = new Konva.Group({
+        x: pos.x,
+        y: pos.y,
+        width: 32,
+        height: 32,
+        draggable: false,
+    });
+
+    const noteRect = new Konva.Rect({
+        fill: 'green',
+        width: 32,
+        height: 32,
+        opacity: 0,
+    });
+
+    const noteObj = new Image();
+    noteObj.onload = function () {
+        const noteImg = new Konva.Image({
+            image: noteObj,
+            height: 32,
+            width: 32,
+            text: note,
+            name: 'note',
+        });
+
+        noteImg.on('mousemove', noteMousemove);
+        noteImg.on('mouseout', function (e) {
+            if (drawing)
+                return;
+            tooltip.hide();
+        });
+        noteGroup.add(noteImg);
+    }
+    noteObj.src = `/static/img/note.png`;
+
+    noteGroup.add(noteRect);
+    notesLayer.add(noteGroup);
+
+    hideContextMenu();
+};
+
 let resizeObserver = new ResizeObserver((e) => {
     let x = e[0].target.offsetLeft;
     let y = e[0].target.offsetTop;
@@ -261,7 +473,10 @@ let resizeObserver = new ResizeObserver((e) => {
     keepContextMenuOnScreen(x, y, w, h);
 });
 resizeObserver.observe($('#collapseMenu')[0]);
+/**************************************************************/
 
+/**************************************************************/
+/* Hexagonal grid functions ***********************************/
 function toAxial(pos) {
     if (!map) {
         return null;
@@ -315,5 +530,6 @@ function axialRound(hex) {
 function Hex(q, r) {
     return { q: q, r: r }
 }
+/**************************************************************/
 
 start();

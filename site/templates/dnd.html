@@ -3,8 +3,6 @@
 <!--<link rel="stylesheet" href="{{ url_for('static', filename='css/dnd.css') }}">-->
 {% endblock %}
 {% block content %}
-<div id="alert" class="position-sticky top-0 start-0 w-100 alert alert-primary fade in hide no-cursor" role="alert">
-</div>
 <div class="collapse no-cursor" id="collapseMenu" style="z-index: 1002; width: 420px;">
     <div class="card card-body">
         <div class="accordion" id="accordion">
@@ -56,9 +54,12 @@
             </div>
         </div>
         <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#saveFogModal">Save Map</button>
-        <a id="drawFogOfWar" class="btn btn-primary mt-2" href="#" role="button">Draw Mode</a>
+        <a id="drawMap" class="btn btn-primary mt-2" href="#" role="button">Draw Mode</a>
+        <a id="dragMap" class="btn btn-primary mt-2" href="#" role="button">Drag Mode</a>
+        <a id="lockMap" class="btn btn-primary mt-2" href="#" role="button">Lock Mode</a>
         <a id="revealFogOfWar" class="btn btn-primary mt-2" href="#" role="button">Clear Fog</a>
-        <a class="btn btn-primary mt-2" href="/" role="button">Exit</a>
+   <!-- <a id="rotateMap" class="btn btn-primary mt-2" href="#" role="button">Rotate</a> -->
+        <a id="exitMap" class="btn btn-primary mt-2" href="/" role="button">Exit</a>
     </div>
 </div>
 <!-- Modal -->
