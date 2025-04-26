@@ -33,8 +33,7 @@
         const S = PPI; // Size of the base in pixels
 
 
-        function alert(message, type) {
-            /*
+        function alertBanner(message, type) {
             const wrapper = document.createElement('div');
             wrapper.innerHTML = [
                 `<div class="position-fixed w-50 mt-3 alert alert-${type} alert-dismissible" role="alert">`,
@@ -42,7 +41,6 @@
                 '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
                 '</div>'
             ].join('');
-            */
         }
     </script>
     <script src="{{ url_for('static', filename='vendor/Konva/konva.min.js') }}"></script>

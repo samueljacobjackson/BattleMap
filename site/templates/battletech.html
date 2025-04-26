@@ -23,10 +23,10 @@
                                 {% for folderName, folders in maps.items() %}
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#map-collapse-{{ folderName }}" aria-expanded="false"
-                                        aria-controls="map-collapse-{{ folderName }}"> {{ folderName }} </button>
+                                        data-bs-target="#map-collapse-{{ folderName.replace(' ', '_') }}" aria-expanded="false"
+                                        aria-controls="map-collapse-{{ folderName.replace(' ', '_') }}"> {{ folderName }} </button>
                                 </h2>
-                                <div id="map-collapse-{{ folderName }}" class="accordion-collapse collapse">
+                                <div id="map-collapse-{{ folderName.replace(' ', '_') }}" class="accordion-collapse collapse">
                                     <div class="accordion-body">
                                         <div class="list-group">
                                             {% if not folders %}
@@ -68,24 +68,24 @@
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapseMaps2" aria-expanded="false" aria-controls="collapseMaps2"> Change Map
+                        data-bs-target="#collapseMaps" aria-expanded="false" aria-controls="collapseMaps"> Change Map
                     </button>
                 </h2>
-                <div id="collapseMaps2" class="accordion-collapse collapse" data-bs-parent="#accordion">
+                <div id="collapseMaps" class="accordion-collapse collapse" data-bs-parent="#accordion">
                     <div class="accordion-body">
-                        <div class="accordion" id="accordionMaps2">
+                        <div class="accordion" id="accordionMaps">
                             <div class="accordion-item">
                                 {% if not maps %}
                                 <h3>There are no folders!</h3>
                                 {% endif %}
                                 {% if maps %}
-                                {% for folder, folders in maps.items() %}
+                                {% for folderName, folders in maps.items() %}
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#map-collapse-{{ folder['aria_tag'] }}2" aria-expanded="false"
-                                        aria-controls="map-collapse-{{ folder['aria_tag'] }}2"> {{ folder }} </button>
+                                        data-bs-target="#map-collapse-{{ folderName.replace(' ', '_') }}" aria-expanded="false"
+                                        aria-controls="map-collapse-{{ folderName.replace(' ', '_') }}"> {{ folderName }} </button>
                                 </h2>
-                                <div id="map-collapse-{{ folder['aria_tag'] }}2" class="accordion-collapse collapse">
+                                <div id="map-collapse-{{ folderName.replace(' ', '_') }}" class="accordion-collapse collapse">
                                     <div class="accordion-body">
                                         <div class="list-group">
                                             {% if not folders %}

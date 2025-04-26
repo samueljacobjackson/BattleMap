@@ -32,7 +32,7 @@ const lineLayer = new Konva.Layer();
 stage.add(lineLayer);
 let line
 
-const notesLayer = new Konva.Layer();
+let notesLayer = new Konva.Layer();
 stage.add(notesLayer);
 
 const tooltipLayer = new Konva.Layer({
@@ -151,23 +151,7 @@ function keepContextMenuOnScreen(x, y, w, h) {
 }
 
 function loadMap() {
-    notesLayer.destroy(); /* Clear the notes layer before loading a new map */
-    mapLayer.destroyChildren(); /* Clear the map layer before loading a new map */
-
-    notesLayer = Konva.Node.create(map.notesLayer);
-    stage.add(notesLayer);
-
-    const notes = layer.find('.note');
-    notes.forEach(function (note) {
-        note.on('mousemove', noteMousemove);
-        note.on('mouseout', function (e) {
-            if (drawing)
-                return;
-            tooltip.hide();
-        });
-        note.src = `/static/img/note.png`;
-    });
-
+    mapLayer.destroyChildren();
     scale = R / map.R;
     mapObj = new Image();
     mapObj.onload = function () {
@@ -181,6 +165,26 @@ function loadMap() {
         mapLayer.add(mapImg);
     };
     mapObj.src = map.src;
+
+    notesLayer.destroy();    
+    notesLayer = new Konva.Layer();
+    notesLayer = Konva.Node.create(map.notesLayer);
+    stage.add(notesLayer);
+
+    const notes = notesLayer.find('.note');
+    notes.forEach(function (note) {
+        var noteObj = new Image();
+        noteObj.onload = function () {
+            note.image(noteObj);
+        };
+        noteObj.src = `/static/img/note.png`;
+        note.on('mousemove', noteMousemove);
+        note.on('mouseout', function (e) {
+            if (drawing)
+                return;
+            tooltip.hide();
+        });
+    });
 }
 
 function moveTooltip(text, pos) {
@@ -332,12 +336,17 @@ function mapItemClick() {
         url: `/battletech/load?mapFolder=${mapFolder}&mapName=${mapName}`,
         method: "GET",
         success: function (response) {
-            map = response.data;
-            loadMap();
+            if(!response.error) {
+                map = JSON.parse(response.data);
+                loadMap();
+            } else {
+                console.error(response.message);
+                alertBanner(response.message, 'danger');
+            }
         },
         error: function (xhr, status, error) {
             console.error(error.message);
-            alert(error.message, 'danger');
+            alertBanner(error.message, 'danger');
         }
     });
 }
@@ -383,15 +392,15 @@ function saveMapClick() {
         success: function (response) {
             if (!response.error) {
                 console.log(response.message);
-                alert(response.message, 'success');
+                alertBanner(response.message, 'success');
             } else {
                 console.error(response.message);
-                alert(response.message, 'danger');
+                alertBanner(response.message, 'danger');
             }
         },
         error: function (xhr, status, error) {
             console.error(error.message);
-            alert(error.message, 'danger');
+            alertBanner(error.message, 'danger');
         }
     });
     hideContextMenu();
@@ -417,7 +426,7 @@ function submitNoteClick() {
     const note = $('#noteInput').val();
     if (note === '') {
         hideContextMenu();
-        alert('Please enter a note', 'warning');
+        alertBanner('Please enter a note', 'warning');
         return;
     }
     hideContextMenu();
@@ -456,7 +465,8 @@ function submitNoteClick() {
             tooltip.hide();
         });
         noteGroup.add(noteImg);
-    }
+    }  
+    noteObj.name = 'noteObj';
     noteObj.src = `/static/img/note.png`;
 
     noteGroup.add(noteRect);

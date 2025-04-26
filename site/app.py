@@ -26,6 +26,12 @@ def battletech_save():
     data = request.json
     return save_map(data, 'battletech')
 
+@app.route("/battletech/load", methods=['GET', 'POST'])
+def battletech_load():
+    map_name = request.args.get('mapName', 'Default')
+    folder_name = request.args.get('mapFolder', 'Default')
+    return load_map(file_name=map_name, folder_name=folder_name, game='battletech')
+
 @app.route("/dnd", methods=['GET', 'POST'])
 def dnd():
     maps = None
@@ -54,8 +60,8 @@ def list_maps(game):
                     continue
                 folder_path = path.join(root, dir)
                 folder_name = path.basename(folder_path)
-                folders[folder_name] = {}
-                folders[folder_name]['aria_tag'] = ''.join(random.choices(string.ascii_uppercase, k=10))
+                folder = folder_name.replace('_', ' ')
+                folders[folder] = {}
                 for null, null, files in walk(folder_path):
                     if files:
                         files.sort()
@@ -66,12 +72,12 @@ def list_maps(game):
                                     data = f.read()
                                     m = json.loads(data)
                                     map_name = m['name']
-                                    folders[folder_name][map_name] = m
+                                    folders[folder][map_name] = m
     return folders
 
 def save_map(data, game):
-    file_name = data.get('name', 'Default')
-    folder_name = data.get('folder', 'Default')
+    file_name = data.get('name', 'Default').replace(' ', '_')
+    folder_name = data.get('folder', 'Default').replace(' ', '_')
     
     if not data:
         return jsonify({"error": True, "message": "No map data provided!"}), 400
@@ -86,11 +92,15 @@ def save_map(data, game):
         return jsonify({"error": True, "message": str(e)}), 500
 
 def load_map(file_name, folder_name, game):
+    folder_name = folder_name.replace(' ', '_')
+    file_name = file_name.replace(' ', '_')
     file_path = path.join('static', 'games', game, 'maps', folder_name, file_name + '.json')
     try:
         with open(file_path, 'r') as f:
-            data = json.dumps(data)
-            return jsonify({"error": False, "data": json.loads(data)}), 200
+            data = json.dumps(f.read())
+        if not data:
+            return jsonify({"error": True, "message": "Map not found!"}), 404
+        return jsonify({"error": False, "data": json.loads(data)}), 200
     except Exception as e:
         print(e)
         return jsonify({"error": True, "message": str(e)}), 500
