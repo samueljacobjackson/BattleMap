@@ -131,10 +131,14 @@ function loadMap() {
     lockMode = false;
     drawLine = false;
 
+    stage.destroyChildren();
+
     mapLayer = Konva.Node.create(map.mapLayer);
     fogLayer = Konva.Node.create(map.fogLayer);
 
-    stage.destroyChildren();
+    stage.add(mapLayer);
+    stage.add(fogLayer);
+
     tooltip.add(tooltipRect);
     tooltip.add(tooltipText);
     tooltipLayer.add(tooltip);
@@ -523,12 +527,17 @@ $(".map-item").on('click', function () {
         url: `/dnd/load?mapFolder=${mapFolder}&mapName=${mapName}`,
         method: "GET",
         success: function (response) {
-            map = response.data;
+            if (response.error) {
+                console.error(response.message);
+                alertBanner(response.message, 'danger');
+                return;
+            }
+            map = JSON.parse(response.data);
             loadMap();
         },
         error: function (xhr, status, error) {
             console.error(error.message);
-            alert(error.message, 'danger');
+            alertBanner(error.message, 'danger');
         }
     });
     closeContextMenu();

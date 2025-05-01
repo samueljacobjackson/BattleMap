@@ -3,7 +3,7 @@
     "fogLayer": "{\"attrs\":{\"name\":\"fogLayer\"},\"className\":\"Layer\",\"children\":[]}",
     "folder": "Phandelver",
     "mapLayer": "{\"attrs\":{\"listen\":false,\"name\":\"mapLayer\"},\"className\":\"Layer\",\"children\":[{\"attrs\":{\"width\":6253.547292889758,\"height\":8846.611872146119},\"className\":\"Image\"}]}",
-    "name": "WaveEchoCave",
-    "src": "/static/games/dnd/maps/Phandelver/WaveEchoCave.jpg",
-    "tooltipLayer": "{\"attrs\":{\"listening\":false,\"name\":\"tooltipLayer\"},\"className\":\"Layer\",\"children\":[{\"attrs\":{\"listening\":false},\"className\":\"Group\",\"children\":[{\"attrs\":{\"fill\":\"white\",\"opacity\":0.75,\"cornerRadius\":5},\"className\":\"Rect\"},{\"attrs\":{\"fontFamily\":\"Calibri\",\"fontSize\":16,\"padding\":5,\"fill\":\"rgba(0,0,0,1)\",\"listening\":false},\"className\":\"Text\"}]}]}"
+    "name": "Wave Echo Cave",
+    "src": "/static/games/dnd/maps/Phandelver/Wave_Echo_Cave.jpg",
+    "tooltipLayer": "{\"attrs\":{\"listening\":false,\"name\":\"tooltipLayer\"},\"className\":\"Layer\",\"children\":[]}"
 }

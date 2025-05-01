@@ -1,13 +1,11 @@
 let scale = 1;
-let map = null;
-let drag = false;
+let map;
+let dragMode = false;
 let drawing = false;
 let startHex = { q: 0, r: 0 };
 let contextPos = { x: 0, y: 0 };
-let target = null;
-let mapObj = null;
-let folder = '';
-let name = '';
+let target;
+let line;
 
 const stage = new Konva.Stage({
     container: 'canvas',
@@ -23,21 +21,14 @@ stage.on('mousemove', mousemove);
 stage.on('mouseup', mouseup);
 stage.on('click', click);
 
-const mapLayer = new Konva.Layer({
-    listening: false
-});
+let mapLayer = new Konva.Layer();
 stage.add(mapLayer);
-
-const lineLayer = new Konva.Layer();
-stage.add(lineLayer);
-let line
-
 let notesLayer = new Konva.Layer();
 stage.add(notesLayer);
 
-const tooltipLayer = new Konva.Layer({
-    listening: false
-});
+const lineLayer = new Konva.Layer();
+stage.add(lineLayer);
+const tooltipLayer = new Konva.Layer();
 stage.add(tooltipLayer);
 
 const tooltipText = new Konva.Text({
@@ -55,12 +46,6 @@ const tooltip = new Konva.Group({
     listening: false,
 });
 
-const tooltipRect = new Konva.Rect({
-    fill: 'green',
-    opacity: 0,
-});
-
-tooltip.add(tooltipRect);
 tooltip.add(tooltipText);
 tooltipLayer.add(tooltip);
 
@@ -77,8 +62,8 @@ $('#cancelNote').on('click', cancelNoteClick);
 $('#noteInput').on('keyup', noteInputKeyUp);
 $('#closeSaveModal').on('click', closeSaveModalClick);
 
-/************************************************************/
-/* Functions ************************************************/
+/******************************************************************/
+/* Functions ******************************************************/
 function destroyLines() {
     lineLayer.destroyChildren();
     tooltip.hide();
@@ -151,7 +136,14 @@ function keepContextMenuOnScreen(x, y, w, h) {
 }
 
 function loadMap() {
-    mapLayer.destroyChildren();
+   // stage.destroyChildren();
+
+    mapLayer.destroy();
+    mapLayer = new Konva.Layer({
+        listening: false
+    });
+    stage.add(mapLayer);
+
     scale = R / map.R;
     mapObj = new Image();
     mapObj.onload = function () {
@@ -166,16 +158,21 @@ function loadMap() {
     };
     mapObj.src = map.src;
 
-    notesLayer.destroy();    
-    notesLayer = new Konva.Layer();
+    notesLayer.destroy();
+    notesLayer = new Konva.Layer({
+        listening: false
+    });
     notesLayer = Konva.Node.create(map.notesLayer);
+    if (notesLayer.getClassName() !== 'Layer') {
+        notesLayer = new Konva.Layer();
+    }
     stage.add(notesLayer);
 
     const notes = notesLayer.find('.note');
     notes.forEach(function (note) {
-        var noteObj = new Image();
+        let noteObj = new Image();
         noteObj.onload = function () {
-            note.image(noteObj);
+            note.image(note.noteObj);
         };
         noteObj.src = `/static/img/note.png`;
         note.on('mousemove', noteMousemove);
@@ -219,9 +216,9 @@ function showContextMenu(pos) {
 }
 
 function setSplashscreen(index) {
-    if (map !== null) /* If no map is loaded, we can show the splashscreen */
+    if (map)
         return;
-    if (index > 14) { /* If we have shown all the images, start over */
+    if (index > 14) {
         index = 0;
     }
     const mapObj = new Image();
@@ -231,22 +228,23 @@ function setSplashscreen(index) {
             height: stage.height(),
             width: stage.width()
         });
-        mapLayer.destroyChildren(); /* Clear the map layer before loading a new image */
+        mapLayer.destroyChildren();
         mapLayer.add(mapImg);
     };
-    mapObj.src = `/static/img/battletech/splashscreen_${index}.jpg`; /* Load the next splashscreen image */
+    mapObj.src = `/static/img/battletech/splashscreen_${index}.jpg`;
     setTimeout(function () {
         index++;
-        setSplashscreen(index); /* Call this function again for the next image */
+        setSplashscreen(index);
     }, 60000)
 }
 
 function start() {
     setSplashscreen(0);
 }
+/******************************************************************/
 
-/************************************************************/
-/* Konva Event Handlers **************************************/
+/******************************************************************/
+/* Konva Event Handlers *******************************************/
 function click(e) {
     hideContextMenu();
 }
@@ -263,7 +261,7 @@ function mousedown(e) {
     const pos = stage.getPointerPosition();
     pos.x = pos.x - stage.attrs.x;
     pos.y = pos.y - stage.attrs.y;
-    if (drag) /* If in drag mode, we don't want to draw a line */
+    if (dragMode) /* If in drag mode, we don't want to draw a line */
         return;
     initLine(pos); /* Initialize the line at the mouse position */
 };
@@ -272,7 +270,7 @@ function mousemove(e) {
     const pos = stage.getPointerPosition();
     pos.x = pos.x - stage.attrs.x;
     pos.y = pos.y - stage.attrs.y;
-    if (drag) /* If in drag mode, we don't want to draw a line */
+    if (dragMode) /* If in drag mode, we don't want to draw a line */
         return;
     drawLine(pos); /* Update the line position as the mouse moves */
 };
@@ -292,8 +290,8 @@ function noteMousemove(e) {
 }
 /******************************************************************/
 
-/*****************************************************************/
-/* Http event handlers ***********************************/
+/******************************************************************/
+/* Http event handlers ********************************************/
 function cancelNoteClick() {
     hideContextMenu();
 }
@@ -303,7 +301,7 @@ function closeSaveModalClick() {
 }
 
 function lockMapClick() {
-    drag = false;
+    dragMode = false;
     drawing = true;
     $('#drag').addClass('btn-primary').removeClass('btn-success');
     $('#drag').text('Drag Mode (Off)');
@@ -332,11 +330,12 @@ function mapItemClick() {
     hideContextMenu();
     const mapName = $(this).data('name');
     const mapFolder = $(this).data('folder');
+
     $.ajax({
         url: `/battletech/load?mapFolder=${mapFolder}&mapName=${mapName}`,
         method: "GET",
         success: function (response) {
-            if(!response.error) {
+            if (!response.error) {
                 map = JSON.parse(response.data);
                 loadMap();
             } else {
@@ -372,9 +371,9 @@ function openSaveModalClick() {
 
 function removeNoteClick() {
     hideContextMenu();
-    if (target.name !== 'note')
+    if (target.attrs.name !== 'note')
         return;
-    target.destroy();
+    target.parent.destroy();
 };
 
 function saveMapClick() {
@@ -383,7 +382,6 @@ function saveMapClick() {
         return;
     }
     map.notesLayer = notesLayer.toJSON();
-    map.src = map.src;
     $.ajax({
         url: "/battletech/save",
         method: "POST",
@@ -407,7 +405,7 @@ function saveMapClick() {
 }
 
 function setDragModeClick() {
-    drag = true;
+    dragMode = true;
     drawing = false;
     $('#drag').addClass('btn-success').removeClass('btn-primary');
     $('#drag').text('Drag Mode (On)');
@@ -421,58 +419,43 @@ function setDragModeClick() {
 }
 
 function submitNoteClick() {
-    if (!map)
-        return;
-    const note = $('#noteInput').val();
-    if (note === '') {
+    if (!map) {
         hideContextMenu();
+        return;
+    }
+
+    const note = $('#noteInput').val(); hideContextMenu();
+    if (note === '') {
         alertBanner('Please enter a note', 'warning');
         return;
     }
-    hideContextMenu();
+
     let pos = contextPos;
-    pos = { x: pos.x - stage.attrs.x - 32, y: pos.y - stage.attrs.y - 32 };
-
-    const noteGroup = new Konva.Group({
-        x: pos.x,
-        y: pos.y,
-        width: 32,
-        height: 32,
-        draggable: false,
-    });
-
-    const noteRect = new Konva.Rect({
-        fill: 'green',
-        width: 32,
-        height: 32,
-        opacity: 0,
-    });
+    pos = {
+        x: pos.x - stage.attrs.x - 16,
+        y: pos.y - stage.attrs.y - 16
+    };
 
     const noteObj = new Image();
     noteObj.onload = function () {
         const noteImg = new Konva.Image({
             image: noteObj,
-            height: 32,
-            width: 32,
-            text: note,
+            x: pos.x,
+            y: pos.y,
             name: 'note',
+            text: note,
+            width: 32,
+            height: 32,
         });
-
         noteImg.on('mousemove', noteMousemove);
         noteImg.on('mouseout', function (e) {
             if (drawing)
                 return;
             tooltip.hide();
         });
-        noteGroup.add(noteImg);
-    }  
-    noteObj.name = 'noteObj';
+        notesLayer.add(noteImg);
+    };
     noteObj.src = `/static/img/note.png`;
-
-    noteGroup.add(noteRect);
-    notesLayer.add(noteGroup);
-
-    hideContextMenu();
 };
 
 let resizeObserver = new ResizeObserver((e) => {
@@ -483,10 +466,10 @@ let resizeObserver = new ResizeObserver((e) => {
     keepContextMenuOnScreen(x, y, w, h);
 });
 resizeObserver.observe($('#collapseMenu')[0]);
-/**************************************************************/
+/******************************************************************/
 
-/**************************************************************/
-/* Hexagonal grid functions ***********************************/
+/******************************************************************/
+/* Hexagonal grid functions ***************************************/
 function toAxial(pos) {
     if (!map) {
         return null;
@@ -540,6 +523,6 @@ function axialRound(hex) {
 function Hex(q, r) {
     return { q: q, r: r }
 }
-/**************************************************************/
+/******************************************************************/
 
 start();

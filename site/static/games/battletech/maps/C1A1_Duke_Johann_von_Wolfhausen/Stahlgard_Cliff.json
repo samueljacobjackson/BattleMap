@@ -1,7 +1,8 @@
 {
+    "folder": "C1A1 Duke Johann von Wolfhausen",
     "flatTop": true,
     "name": "Stahlgard Cliff",
-    "notesLayer": "{\"attrs\":{},\"className\":\"Layer\",\"children\":[{\"attrs\":{\"x\":496,\"y\":356.5,\"width\":32,\"height\":32},\"className\":\"Group\",\"children\":[{\"attrs\":{\"fill\":\"green\",\"width\":32,\"height\":32,\"opacity\":0},\"className\":\"Rect\"},{\"attrs\":{\"height\":32,\"width\":32,\"text\":\"Duke Johann von Wolfhausen\",\"name\":\"note\"},\"className\":\"Image\"}]},{\"attrs\":{\"x\":922,\"y\":110.5,\"width\":32,\"height\":32},\"className\":\"Group\",\"children\":[{\"attrs\":{\"fill\":\"green\",\"width\":32,\"height\":32,\"opacity\":0},\"className\":\"Rect\"},{\"attrs\":{\"height\":32,\"width\":32,\"text\":\"Commando COM-1D\",\"name\":\"note\"},\"className\":\"Image\"}]},{\"attrs\":{\"x\":1028,\"y\":420.5,\"width\":32,\"height\":32},\"className\":\"Group\",\"children\":[{\"attrs\":{\"fill\":\"green\",\"width\":32,\"height\":32,\"opacity\":0},\"className\":\"Rect\"},{\"attrs\":{\"height\":32,\"width\":32,\"text\":\" Commando COM-7X\",\"name\":\"note\"},\"className\":\"Image\"}]},{\"attrs\":{\"x\":1029,\"y\":673.5,\"width\":32,\"height\":32},\"className\":\"Group\",\"children\":[{\"attrs\":{\"fill\":\"green\",\"width\":32,\"height\":32,\"opacity\":0},\"className\":\"Rect\"},{\"attrs\":{\"height\":32,\"width\":32,\"text\":\"Commando COM-7Y\",\"name\":\"note\"},\"className\":\"Image\"}]},{\"attrs\":{\"x\":810,\"y\":422.5,\"width\":32,\"height\":32},\"className\":\"Group\",\"children\":[{\"attrs\":{\"fill\":\"green\",\"width\":32,\"height\":32,\"opacity\":0},\"className\":\"Rect\"},{\"attrs\":{\"height\":32,\"width\":32,\"text\":\"Shadow Hawk SHD-3SL\",\"name\":\"note\"},\"className\":\"Image\"}]}]}",
+    "notesLayer": "{}",
     "R": 76,
     "src": "/static/games/battletech/maps/C1A1_Duke_Johann_von_Wolfhausen/Stahlgard_Cliff.jpg"
 }
