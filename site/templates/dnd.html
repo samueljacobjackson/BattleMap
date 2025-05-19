@@ -23,10 +23,13 @@
                                 {% for folderName, folders in maps.items() %}
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#map-collapse-{{ folderName }}" aria-expanded="false"
-                                        aria-controls="map-collapse-{{ folderName }}"> {{ folderName }} </button>
+                                        data-bs-target="#map-collapse-{{ folderName|replace(' ','-') }}"
+                                        aria-expanded="false"
+                                        aria-controls="map-collapse-{{ folderName|replace(' ','-') }}"> {{ folderName
+                                        }} </button>
                                 </h2>
-                                <div id="map-collapse-{{ folderName }}" class="accordion-collapse collapse">
+                                <div id="map-collapse-{{ folderName|replace(' ','-') }}"
+                                    class="accordion-collapse collapse">
                                     <div class="accordion-body">
                                         <div class="list-group">
                                             {% if not folders %}
@@ -37,8 +40,7 @@
                                             {% if folders %}
                                             {% for name, map in folders.items() %}
                                             <a href="#" class="list-group-item list-group-item-action map-item"
-                                                data-folder="{{ folderName }}" data-name="{{ map['name'] }}"> {{
-                                                map['name']
+                                                data-folder="{{ map.folder }}" data-name="{{ map.name }}"> {{ map.name
                                                 }}</a>
                                             {% endfor %}
                                             {% endif %}
@@ -53,13 +55,69 @@
                 </div>
             </div>
         </div>
-        <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#saveFogModal">Save Map</button>
+        <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#saveFogModal">Save
+            Map</button>
         <a id="drawMap" class="btn btn-primary mt-2" href="#" role="button">Draw Mode</a>
         <a id="dragMap" class="btn btn-primary mt-2" href="#" role="button">Drag Mode</a>
         <a id="lockMap" class="btn btn-primary mt-2" href="#" role="button">Lock Mode</a>
         <a id="revealFogOfWar" class="btn btn-primary mt-2" href="#" role="button">Clear Fog</a>
-   <!-- <a id="rotateMap" class="btn btn-primary mt-2" href="#" role="button">Rotate</a> -->
-        <a id="exitMap" class="btn btn-primary mt-2" href="/" role="button">Exit</a>
+        <!-- <a id="rotateMap" class="btn btn-primary mt-2" href="#" role="button">Rotate</a> -->
+        <a id="exitMap" class="btn btn-primary mt-2" href="#" role="button">Exit</a>
+    </div>
+</div>
+<div class="collapse no-cursor" id="collapseMenu2" style="z-index: 1002; width: 420px;">
+    <div class="card card-body">
+        <div class="accordion" id="accordion2">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapseMaps2" aria-expanded="false" aria-controls="collapseMaps2"> Change Map
+                    </button>
+                </h2>
+                <div id="collapseMaps2" class="accordion-collapse collapse" data-bs-parent="#accordion2">
+                    <div class="accordion-body">
+                        <div class="accordion" id="accordionMaps2">
+                            <div class="accordion-item">
+                                {% if not maps %}
+                                <h3>There are no folders!</h3>
+                                {% endif %}
+                                {% if maps %}
+                                {% for folderName, folders in maps.items() %}
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#map-collapse-{{ folderName|replace(' ','-') }}"
+                                        aria-expanded="false"
+                                        aria-controls="map-collapse-{{ folderName|replace(' ','-') }}"> {{ folderName
+                                        }} </button>
+                                </h2>
+                                <div id="map-collapse-{{ folderName|replace(' ','-') }}"
+                                    class="accordion-collapse collapse">
+                                    <div class="accordion-body">
+                                        <div class="list-group">
+                                            {% if not folders %}
+                                            <div class="">
+                                                <h3>There are no maps!</h3>
+                                            </div>
+                                            {% endif %}
+                                            {% if folders %}
+                                            {% for name, map in folders.items() %}
+                                            <a href="#" class="list-group-item list-group-item-action map-item"
+                                                data-folder="{{ map.folder }}" data-name="{{ map.name }}"> {{ map.name
+                                                }}</a>
+                                            {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a id="exitMap2" class="btn btn-primary mt-2" href="#" role="button">Exit</a>
     </div>
 </div>
 <!-- Modal -->
@@ -70,7 +128,8 @@
                 <h1 class="modal-title fs-5" id="SaveFogModalLabel">Overwrite Map?</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body"> This will overwrite the saved map with the current map. Are you sure you want to proceed?<br />
+            <div class="modal-body"> This will overwrite the saved map with the current map. Are you sure you want to
+                proceed?<br />
                 <strong>This action cannot be undone.</strong>
             </div>
             <div class="modal-footer">

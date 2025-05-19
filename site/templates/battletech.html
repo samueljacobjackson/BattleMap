@@ -23,10 +23,13 @@
                                 {% for folderName, folders in maps.items() %}
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#map-collapse-{{ folderName.replace(' ', '_') }}" aria-expanded="false"
-                                        aria-controls="map-collapse-{{ folderName.replace(' ', '_') }}"> {{ folderName }} </button>
+                                        data-bs-target="#map-collapse-{{ folderName.replace(' ', '_') }}"
+                                        aria-expanded="false"
+                                        aria-controls="map-collapse-{{ folderName.replace(' ', '_') }}"> {{ folderName
+                                        }} </button>
                                 </h2>
-                                <div id="map-collapse-{{ folderName.replace(' ', '_') }}" class="accordion-collapse collapse">
+                                <div id="map-collapse-{{ folderName.replace(' ', '_') }}"
+                                    class="accordion-collapse collapse">
                                     <div class="accordion-body">
                                         <div class="list-group">
                                             {% if not folders %}
@@ -53,12 +56,8 @@
                 </div>
             </div>
         </div>
-        <a id="openSaveModal" class="btn btn-primary mt-2" role="button">Save Map</button>
-            <a id="openDropNoteModal" class="btn btn-primary mt-2" role="button">Drop Note</a>
-            <a id="removeNote" class="btn btn-primary mt-2 pos" role="button">Remove Note</a>
-            <a id="setDragMode" class="btn btn-primary mt-2" role="button">Drag Mode (Off)</a>
-            <a id="lockMap" class="btn btn-success mt-2" role="button">Lock Map</a>
-        </a>
+        <a id="setDragMode" class="btn btn-primary mt-2" role="button">Drag Mode (Off)</a>
+        <a id="lockMap" class="btn btn-success mt-2" role="button">Lock Map (On)</a>
         <a id="exit" class="btn btn-primary mt-2" href="/" role="button">Exit</a>
     </div>
 </div>
@@ -82,10 +81,13 @@
                                 {% for folderName, folders in maps.items() %}
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                        data-bs-target="#map-collapse-{{ folderName.replace(' ', '_') }}" aria-expanded="false"
-                                        aria-controls="map-collapse-{{ folderName.replace(' ', '_') }}"> {{ folderName }} </button>
+                                        data-bs-target="#map-collapse-{{ folderName.replace(' ', '_') }}"
+                                        aria-expanded="false"
+                                        aria-controls="map-collapse-{{ folderName.replace(' ', '_') }}"> {{ folderName
+                                        }} </button>
                                 </h2>
-                                <div id="map-collapse-{{ folderName.replace(' ', '_') }}" class="accordion-collapse collapse">
+                                <div id="map-collapse-{{ folderName.replace(' ', '_') }}"
+                                    class="accordion-collapse collapse">
                                     <div class="accordion-body">
                                         <div class="list-group">
                                             {% if not folders %}
@@ -112,38 +114,7 @@
                 </div>
             </div>
         </div>
-    </div>
-</div>
-<div class="modal fade" id="saveModal" tabindex="-1" aria-labelledby="saveModalLabel">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="saveModalLabel">Overwrite Map?</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body"> This will overwrite the saved map with the current map. Are you sure you want to
-                proceed?<br />
-                <strong>This action cannot be undone.</strong>
-            </div>
-            <div class="modal-footer">
-                <button id="closeSaveModal" type="button" class="btn btn-secondary">Close</button>
-                <button id="saveMap" type="button" class="btn btn-primary">Save</button>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="modal fade" id="noteModal" tabindex="-1" aria-labelledby="noteModalLabel">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-body">
-                <p>Please enter a note:</p>
-                <input type="text" id="noteInput" class="form-control">
-            </div>
-            <div class="modal-footer">
-                <button id="cancelNote" type="button" class="btn btn-secondary">Cancel Note</button>
-                <button id="submitNote" type="button" class="btn btn-primary">Submit Note</button>
-            </div>
-        </div>
+        <a id="exit2" class="btn btn-primary mt-2" href="/" role="button">Exit</a>
     </div>
 </div>
 <div id='canvas'></div>

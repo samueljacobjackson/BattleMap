@@ -3,7 +3,6 @@ let map;
 let dragMode = false;
 let drawing = false;
 let startHex = { q: 0, r: 0 };
-let contextPos = { x: 0, y: 0 };
 let target;
 let line;
 
@@ -19,16 +18,24 @@ stage.on('contextmenu', contextmenu);
 stage.on('mousedown', mousedown);
 stage.on('mousemove', mousemove);
 stage.on('mouseup', mouseup);
-stage.on('click', click);
+//stage.on('click', click);
 
-let mapLayer = new Konva.Layer();
+let mapLayer = new Konva.Layer({
+    listening: false,
+    zIndex: 100
+});
 stage.add(mapLayer);
-let notesLayer = new Konva.Layer();
-stage.add(notesLayer);
 
-const lineLayer = new Konva.Layer();
+const lineLayer = new Konva.Layer({
+    listening: false,
+    zIndex: 200
+});
 stage.add(lineLayer);
-const tooltipLayer = new Konva.Layer();
+
+const tooltipLayer = new Konva.Layer({
+    listening: false,
+    zIndex: 300
+});
 stage.add(tooltipLayer);
 
 const tooltipText = new Konva.Text({
@@ -46,21 +53,19 @@ const tooltip = new Konva.Group({
     listening: false,
 });
 
+const tooltipRect = new Konva.Rect({
+    fill: 'green',
+    opacity: 0,
+});
+
+tooltip.add(tooltipRect);
 tooltip.add(tooltipText);
 tooltipLayer.add(tooltip);
 
-$('#openDropNoteModal').on('click', openDropNoteModalClick);
 $('#collapseMenu').on('contextmenu', function () { return false; });
 $('.map-item').on('click', mapItemClick);
 $('#setDragMode').on('click', setDragModeClick);
 $('#lockMap').on('click', lockMapClick);
-$('#openSaveModal').on('click', openSaveModalClick);
-$('#saveMap').on('click', saveMapClick);
-$('#removeNote').on('click', removeNoteClick);
-$('#submitNote').on('click', submitNoteClick);
-$('#cancelNote').on('click', cancelNoteClick);
-$('#noteInput').on('keyup', noteInputKeyUp);
-$('#closeSaveModal').on('click', closeSaveModalClick);
 
 /******************************************************************/
 /* Functions ******************************************************/
@@ -110,7 +115,7 @@ function initLine(pos) {
         stroke: 'blue',
         strokeWidth: 3,
         listening: false,
-        points: [pos.x, pos.y, pos.x, pos.y]
+        points: [pos.x - 23, pos.y - 20 , pos.x - 20 , pos.y]
     });
     lineLayer.add(line);
     startHex = toAxial(pos);
@@ -144,6 +149,9 @@ function loadMap() {
     });
     stage.add(mapLayer);
 
+    lineLayer.moveToTop();
+    tooltipLayer.moveToTop();
+    
     scale = R / map.R;
     mapObj = new Image();
     mapObj.onload = function () {
@@ -157,46 +165,15 @@ function loadMap() {
         mapLayer.add(mapImg);
     };
     mapObj.src = map.src;
-
-    notesLayer.destroy();
-    notesLayer = new Konva.Layer({
-        listening: false
-    });
-    notesLayer = Konva.Node.create(map.notesLayer);
-    if (notesLayer.getClassName() !== 'Layer') {
-        notesLayer = new Konva.Layer();
-    }
-    stage.add(notesLayer);
-
-    const notes = notesLayer.find('.note');
-    notes.forEach(function (note) {
-        let noteObj = new Image();
-        noteObj.onload = function () {
-            note.image(note.noteObj);
-        };
-        noteObj.src = `/static/img/note.png`;
-        note.on('mousemove', noteMousemove);
-        note.on('mouseout', function (e) {
-            if (drawing)
-                return;
-            tooltip.hide();
-        });
-    });
 }
 
 function moveTooltip(text, pos) {
     tooltip.x(pos.x);
     tooltip.y(pos.y);
     tooltipText.text(text);
-    if (drawing && line) {
-        tooltipText.width(50);
-        tooltipText.height(40);
-        tooltipText.align('center');
-    } else {
-        tooltipText.width(text.length * 20);
-        tooltipText.height(40);
-        tooltipText.align('left');
-    }
+    tooltipText.width(50);
+    tooltipText.height(40);
+    tooltipText.align('center');
     tooltip.width(tooltipText.width());
     tooltip.height(tooltipText.height());
     tooltipRect.width(tooltipText.width());
@@ -207,12 +184,11 @@ function showContextMenu(pos) {
     $("#collapseMenu").css({ top: pos.y, left: pos.x, position: 'absolute' });
     if (map) {
         $('#collapseMenu').collapse('show');
+        keepContextMenuOnScreen(pos.x, pos.y, $('#collapseMenu').width(), $('#collapseMenu').height());
     } else {
         $('#collapseMenu2').collapse('show');
+        keepContextMenuOnScreen(pos.x, pos.y, $('#collapseMenu2').width(), $('#collapseMenu2').height());
     }
-    contextPos.x = pos.x;
-    contextPos.y = pos.y;
-    keepContextMenuOnScreen(pos.x, pos.y, $('#collapseMenu').width(), $('#collapseMenu').height());
 }
 
 function setSplashscreen(index) {
@@ -239,15 +215,14 @@ function setSplashscreen(index) {
 }
 
 function start() {
+    lineLayer.moveToTop();
+    tooltipLayer.moveToTop();
     setSplashscreen(0);
 }
 /******************************************************************/
 
 /******************************************************************/
 /* Konva Event Handlers *******************************************/
-function click(e) {
-    hideContextMenu();
-}
 
 function contextmenu(e) {
     e.evt.preventDefault();
@@ -258,6 +233,7 @@ function contextmenu(e) {
 };
 
 function mousedown(e) {
+    e.evt.preventDefault();
     const pos = stage.getPointerPosition();
     pos.x = pos.x - stage.attrs.x;
     pos.y = pos.y - stage.attrs.y;
@@ -267,6 +243,7 @@ function mousedown(e) {
 };
 
 function mousemove(e) {
+    e.evt.preventDefault();
     const pos = stage.getPointerPosition();
     pos.x = pos.x - stage.attrs.x;
     pos.y = pos.y - stage.attrs.y;
@@ -276,55 +253,23 @@ function mousemove(e) {
 };
 
 function mouseup(e) {
+    e.evt.preventDefault();
     destroyLines();
 };
-
-function noteMousemove(e) {
-    if (drawing)
-        return;
-    const pos = stage.getPointerPosition();
-    pos.x = pos.x - stage.attrs.x + 32;
-    pos.y = pos.y - stage.attrs.y - 20;
-    tooltip.show();
-    moveTooltip(e.target.attrs.text, pos);
-}
-/******************************************************************/
-
-/******************************************************************/
-/* Http event handlers ********************************************/
-function cancelNoteClick() {
-    hideContextMenu();
-}
-
-function closeSaveModalClick() {
-    hideContextMenu();
-}
 
 function lockMapClick() {
     dragMode = false;
     drawing = true;
-    $('#drag').addClass('btn-primary').removeClass('btn-success');
-    $('#drag').text('Drag Mode (Off)');
+    $('#setDragMode').addClass('btn-primary').removeClass('btn-success');
+    $('#setDragMode').text('Drag Mode (Off)');
 
-    $('#lock').addClass('btn-success').removeClass('btn-primary');
-    $('#lock').text('Lock (On)');
+    $('#lockMap').addClass('btn-success').removeClass('btn-primary');
+    $('#lockMap').text('Lock (On)');
 
     stage.draggable(false);
     hideContextMenu();
     return false;
 };
-
-function openDropNoteModalClick() {
-    hideContextMenu();
-    if (!map)
-        return;
-    $('#noteModal').collapse('show');
-    $('#noteModal').addClass('show');
-    $('#noteModal').css('display', 'block');
-    $('#noteModal').css('opacity', '1');
-    $('#noteInput').val('');
-    $('#noteInput').focus();
-}
 
 function mapItemClick() {
     hideContextMenu();
@@ -350,113 +295,19 @@ function mapItemClick() {
     });
 }
 
-function noteInputKeyUp(e) {
-    if (e.keyCode === 13) { /* If the user presses enter, submit the note */
-        $('#submitNote').click();
-    }
-    if (e.keyCode === 27) { /* If the user presses escape, cancel the note */
-        $('#cancelNote').click();
-    }
-}
-
-function openSaveModalClick() {
-    hideContextMenu();
-    if (!map)
-        return;
-    $('#saveModal').collapse('show');
-    $('#saveModal').addClass('show');
-    $('#saveModal').css('display', 'block');
-    $('#saveModal').css('opacity', '1');
-}
-
-function removeNoteClick() {
-    hideContextMenu();
-    if (target.attrs.name !== 'note')
-        return;
-    target.parent.destroy();
-};
-
-function saveMapClick() {
-    if (!map) {
-        hideContextMenu();
-        return;
-    }
-    map.notesLayer = notesLayer.toJSON();
-    $.ajax({
-        url: "/battletech/save",
-        method: "POST",
-        data: JSON.stringify(map),
-        contentType: "application/json",
-        success: function (response) {
-            if (!response.error) {
-                console.log(response.message);
-                alertBanner(response.message, 'success');
-            } else {
-                console.error(response.message);
-                alertBanner(response.message, 'danger');
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error(error.message);
-            alertBanner(error.message, 'danger');
-        }
-    });
-    hideContextMenu();
-}
-
 function setDragModeClick() {
     dragMode = true;
     drawing = false;
-    $('#drag').addClass('btn-success').removeClass('btn-primary');
-    $('#drag').text('Drag Mode (On)');
+    $('#setDragMode').addClass('btn-success').removeClass('btn-primary');
+    $('#setDragMode').text('Drag Mode (On)');
 
-    $('#lock').addClass('btn-primary').removeClass('btn-success');
-    $('#lock').text('Lock (Off)');
+    $('#lockMap').addClass('btn-primary').removeClass('btn-success');
+    $('#lockMap').text('Lock (Off)');
 
     stage.draggable(true);
     hideContextMenu();
     return false;
 }
-
-function submitNoteClick() {
-    if (!map) {
-        hideContextMenu();
-        return;
-    }
-
-    const note = $('#noteInput').val(); hideContextMenu();
-    if (note === '') {
-        alertBanner('Please enter a note', 'warning');
-        return;
-    }
-
-    let pos = contextPos;
-    pos = {
-        x: pos.x - stage.attrs.x - 16,
-        y: pos.y - stage.attrs.y - 16
-    };
-
-    const noteObj = new Image();
-    noteObj.onload = function () {
-        const noteImg = new Konva.Image({
-            image: noteObj,
-            x: pos.x,
-            y: pos.y,
-            name: 'note',
-            text: note,
-            width: 32,
-            height: 32,
-        });
-        noteImg.on('mousemove', noteMousemove);
-        noteImg.on('mouseout', function (e) {
-            if (drawing)
-                return;
-            tooltip.hide();
-        });
-        notesLayer.add(noteImg);
-    };
-    noteObj.src = `/static/img/note.png`;
-};
 
 let resizeObserver = new ResizeObserver((e) => {
     let x = e[0].target.offsetLeft;
@@ -476,7 +327,7 @@ function toAxial(pos) {
     }
     var r = 0;
     var q = 0;
-    if (!map.flatTop) {
+    if (map.flatTop) {
         q = (2 / 3 * pos.x) / R
         r = (-1 / 3 * pos.x + Math.sqrt(3) / 3 * pos.y) / R
     }

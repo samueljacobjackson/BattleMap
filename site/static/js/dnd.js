@@ -122,8 +122,8 @@ function keepContextMenuOnScreen(x, y, w, h) {
         x = 0;
     }
     $('#collapseMenu').css({ top: y, left: x, position: 'absolute' });
+    $('#collapseMenu2').css({ top: y, left: x, position: 'absolute' });
 }
-
 function loadMap() {
     // Set to drag mode
     drawMode = false;
@@ -133,8 +133,10 @@ function loadMap() {
 
     stage.destroyChildren();
 
-    mapLayer = Konva.Node.create(map.mapLayer);
-    fogLayer = Konva.Node.create(map.fogLayer);
+    if(map.mapLayer)
+        mapLayer = Konva.Node.create(map.mapLayer);
+    if(map.fogLayer)
+        fogLayer = Konva.Node.create(map.fogLayer);
 
     stage.add(mapLayer);
     stage.add(fogLayer);
@@ -209,20 +211,6 @@ function finishFog(pos) {
     });
 }
 
-/*
-function rotateMap() {
-    if (!map)
-        return;
-    if (lockMode)
-        return;
-
-    rotation = stage.rotation() + 90;
-    mapLayer.rotation(rotation);
-    fogLayer.rotation(rotation);
-    tooltipLayer.rotation(rotation);
-}
-*/
-
 function splashScreen(index) {
     if (map)
         return;
@@ -238,8 +226,13 @@ function splashScreen(index) {
 
 function showContextMenu(pos) {
     $("#collapseMenu").css({ top: pos.y, left: pos.x, position: 'absolute' });
-    $('#collapseMenu').collapse('show');
-    keepContextMenuOnScreen(pos.x, pos.y, $('#collapseMenu').outerWidth(), $('#collapseMenu').outerHeight());
+        if (map) {
+        $('#collapseMenu').collapse('show');
+        keepContextMenuOnScreen(pos.x, pos.y, $('#collapseMenu').outerWidth(), $('#collapseMenu').outerHeight());
+    } else {
+        $('#collapseMenu2').collapse('show');
+        keepContextMenuOnScreen(pos.x, pos.y, $('#collapseMenu2').outerWidth(), $('#collapseMenu2').outerHeight());
+    }
 }
 
 function startFog(pos) {
@@ -315,7 +308,6 @@ function mousedown(e) {
         }
     }
     if (e.evt.button === 2) {
-        closeContextMenu();
         finishFog(pos);
     }
     if (e.evt.button === 1) {
@@ -398,6 +390,7 @@ function wheel(e) {
 $('body').on('click', function (e) {
     e.preventDefault();
     if (!$(e.target).closest('#collapseMenu').length
+        && !$(e.target).closest('#collapseMenu2').length
         && !$(e.target).closest('#saveFogModal').length
         && !$(e.target).closest('#nameFogModal').length) {
         closeContextMenu();
@@ -449,15 +442,6 @@ $('#lockMap').on('click', function () {
     }
     closeContextMenu();
 });
-
-/*
-$('#rotateMap').on('click', function () {
-    if (map) {
-        rotateMap();
-    }
-    closeContextMenu();
-});
-*/
 
 $('#saveFog').on('click', function () {
     const fogName = $('#fogNameInput').val().trim();
@@ -544,6 +528,10 @@ $(".map-item").on('click', function () {
 });
 
 $('#exitMap').on('click', function () {
+    window.location.href = '/';
+});
+
+$('#exitMap2').on('click', function () {
     window.location.href = '/';
 });
 

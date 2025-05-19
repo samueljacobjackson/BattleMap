@@ -20,18 +20,14 @@
     {% block content %}
     {% endblock %}
     <script>
-        const ScreenWidthInches = 37.375
+        const ScreenWidthInches = 35
         const resolutionWidth = 3840
-
-        //const ScreenWidthInches = 27.375 //Development
-        //const resolutionWidth = 2560 //Development
 
         const MechBase = 1.375; //Size of battletech base in inches
         const PPI = resolutionWidth / ScreenWidthInches;
         
         const R = (MechBase * PPI) / 2;  //Radius of what should the hex on screen in pixels (1.375 * Pixels per inch / 2)
         const S = PPI; // Size of the base in pixels
-
 
         function alertBanner(message, type) {
             const wrapper = document.createElement('div');
